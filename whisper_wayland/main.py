@@ -15,10 +15,10 @@ def main() -> None:
     try:
         if len(sys.argv) > 1:
             print("Error: whisper-wayland does not accept command-line arguments")
-            print("Set WHISPER_WAYLAND_ENV_FILE to load a custom environment file")
+            print("Set WW_ENV_FILE to load a custom environment file")
             sys.exit(1)
 
-        env_file = os.getenv("WHISPER_WAYLAND_ENV_FILE")
+        env_file = os.getenv("WW_ENV_FILE")
         if env_file:
             env_file = env_file.strip()
             if not os.path.exists(env_file):
