@@ -148,6 +148,27 @@ class AudioSystemValidator:
         _logger.debug("No USB/Bluetooth headset found, using system default input device")
         return None
 
+    def describe_recording_input_device(
+        self, audio: pyaudio.PyAudio, input_device_index: typing.Optional[int]
+    ) -> str:
+        """Describe the input device that will be used for recordings."""
+        try:
+            with suppress_native_stderr():
+                if input_device_index is None:
+                    info = audio.get_default_input_device_info()
+                    source = "system default"
+                else:
+                    info = audio.get_device_info_by_index(input_device_index)
+                    source = "selected"
+
+            return (
+                f"{source} input device '{info['name']}' "
+                f"(index {info['index']}, sample_rate={int(info['defaultSampleRate'])} Hz, "
+                f"channels={info['maxInputChannels']})"
+            )
+        except Exception as e:
+            return f"input_device_index={input_device_index} (details unavailable: {e})"
+
     def _can_open_input_device(
         self, audio: pyaudio.PyAudio, config: "ww.Config", input_device_index: int
     ) -> bool:

@@ -49,9 +49,14 @@ class AudioRecorder:
                 self._audio, config
             )
             self._input_device_index = input_device_index
+            input_device_description = self._audio_validator.describe_recording_input_device(
+                self._audio,
+                input_device_index,
+            )
             self._recording_engine = RecordingEngine.new(self._audio, config, input_device_index)
 
             _logger.info("Audio recorder initialized successfully")
+            _logger.info(f"Whisper recordings will use {input_device_description}")
             _logger.debug(
                 f"Audio config: sample_rate={config.audio_sample_rate}, "
                 f"chunk_size={config.audio_chunk_size}, "

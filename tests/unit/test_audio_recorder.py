@@ -45,6 +45,23 @@ class TestAudioRecorder:
         assert min_expected_dbfs < metrics["peak_dbfs"] < max_expected_dbfs
         assert metrics["clipping_percent"] == 0.0
 
+    def test_recording_input_device_description_for_default(self) -> None:
+        """Test describing the PyAudio default input device."""
+        validator = AudioSystemValidator.new()
+        mock_audio_instance = unittest.mock.Mock()
+        mock_audio_instance.get_default_input_device_info.return_value = {
+            "index": 15,
+            "name": "default",
+            "defaultSampleRate": 44100.0,
+            "maxInputChannels": 64,
+        }
+
+        description = validator.describe_recording_input_device(mock_audio_instance, None)
+
+        assert description == (
+            "system default input device 'default' (index 15, sample_rate=44100 Hz, channels=64)"
+        )
+
     @unittest.mock.patch("whisper_wayland.audio_recorder.audio_system_validator.pyaudio.PyAudio")
     def test_microphone_startup_check_runs_when_enabled(
         self, mock_pyaudio: unittest.mock.Mock
