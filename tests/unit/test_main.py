@@ -138,17 +138,20 @@ class TestMainFunction:
 
     @unittest.mock.patch("whisper_wayland.Application")
     @unittest.mock.patch("os.path.exists")
-    def test_main_with_config_file(
+    def test_main_with_env_file(
         self, mock_exists: unittest.mock.Mock, mock_app_class: unittest.mock.MagicMock
     ) -> None:
-        """Test main function with config file argument."""
+        """Test main function with custom environment file."""
         mock_exists.return_value = True
         mock_app = unittest.mock.Mock()
         mock_app_class.return_value = mock_app
 
-        with unittest.mock.patch("sys.argv", ["whisper-wayland", "/path/to/config.env"]):
-            with pytest.raises(SystemExit) as exc_info:
-                ww.main()
+        with unittest.mock.patch.dict(
+            "os.environ", {"WHISPER_WAYLAND_ENV_FILE": "/path/to/config.env"}
+        ):
+            with unittest.mock.patch("sys.argv", ["whisper-wayland"]):
+                with pytest.raises(SystemExit) as exc_info:
+                    ww.main()
 
         assert exc_info.value.code == 0
         mock_app_class.assert_called_once_with("/path/to/config.env")
@@ -156,20 +159,38 @@ class TestMainFunction:
 
     @unittest.mock.patch("whisper_wayland.Application")
     @unittest.mock.patch("os.path.exists")
-    def test_main_with_nonexistent_config_file(
+    def test_main_with_nonexistent_env_file(
         self, mock_exists: unittest.mock.Mock, mock_app_class: unittest.mock.MagicMock
     ) -> None:
-        """Test main function with nonexistent config file."""
+        """Test main function with nonexistent environment file."""
         mock_exists.return_value = False
 
-        with unittest.mock.patch("sys.argv", ["whisper-wayland", "/nonexistent/config.env"]):
+        with unittest.mock.patch.dict(
+            "os.environ", {"WHISPER_WAYLAND_ENV_FILE": "/nonexistent/config.env"}
+        ):
+            with unittest.mock.patch("sys.argv", ["whisper-wayland"]):
+                with unittest.mock.patch("builtins.print") as mock_print:
+                    with pytest.raises(SystemExit) as exc_info:
+                        ww.main()
+
+        assert exc_info.value.code == 1
+        mock_print.assert_called_with(
+            "Error: Environment file '/nonexistent/config.env' not found"
+        )
+        mock_app_class.assert_not_called()
+
+    @unittest.mock.patch("whisper_wayland.Application")
+    def test_main_rejects_arguments(self, mock_app_class: unittest.mock.MagicMock) -> None:
+        """Test main function rejects command-line arguments."""
+        with unittest.mock.patch("sys.argv", ["whisper-wayland", "/path/to/config.env"]):
             with unittest.mock.patch("builtins.print") as mock_print:
                 with pytest.raises(SystemExit) as exc_info:
                     ww.main()
 
         assert exc_info.value.code == 1
-        mock_print.assert_called_with(
-            "Error: Configuration file '/nonexistent/config.env' not found"
+        mock_print.assert_any_call("Error: whisper-wayland does not accept command-line arguments")
+        mock_print.assert_any_call(
+            "Set WHISPER_WAYLAND_ENV_FILE to load a custom environment file"
         )
         mock_app_class.assert_not_called()
 

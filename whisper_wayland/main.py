@@ -13,16 +13,20 @@ import whisper_wayland as ww
 def main() -> None:
     """Main entry point for the application."""
     try:
-        # Check for config file argument
-        config_file = None
         if len(sys.argv) > 1:
-            config_file = sys.argv[1]
-            if not os.path.exists(config_file):
-                print(f"Error: Configuration file '{config_file}' not found")
+            print("Error: whisper-wayland does not accept command-line arguments")
+            print("Set WHISPER_WAYLAND_ENV_FILE to load a custom environment file")
+            sys.exit(1)
+
+        env_file = os.getenv("WHISPER_WAYLAND_ENV_FILE")
+        if env_file:
+            env_file = env_file.strip()
+            if not os.path.exists(env_file):
+                print(f"Error: Environment file '{env_file}' not found")
                 sys.exit(1)
 
         # Create and run application
-        app = ww.Application(config_file)
+        app = ww.Application(env_file or None)
         app.run()
         sys.exit(0)
 

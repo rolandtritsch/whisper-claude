@@ -92,8 +92,15 @@ sudo dnf install portaudio-devel python3-devel wtype
 
 All configuration is handled through environment variables and/or a/the `.env` file:
 
+To load a custom environment file, set `WHISPER_WAYLAND_ENV_FILE` before starting:
+
+```bash
+WHISPER_WAYLAND_ENV_FILE=/path/to/custom.env uv run whisper-wayland
+```
+
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
+| `WHISPER_WAYLAND_ENV_FILE` | Path to custom environment file to load before configuration | - | No |
 | `OPENAI_API_KEY` | OpenAI API key for Whisper service | - | Yes |
 | `WHISPER_MODEL` | Model to use (tiny, base, small, medium, large) | `base` | No |
 | `AUDIO_SAMPLE_RATE` | Audio recording sample rate | `16000` | No |
