@@ -54,7 +54,7 @@ class TestAudioRecorder:
             os.environ,
             {
                 "WW_OPENAI_API_KEY": "sk-test123",
-                "WW_MIC_STARTUP_CHECK": "true",
+                "WW_MIC_STARTUP_CHECK": "auto",
                 "WW_MIC_CHECK_DURATION": "0.01",
             },
         ):
@@ -64,7 +64,8 @@ class TestAudioRecorder:
             mock_audio_instance.open.return_value = mock_stream
             mock_pyaudio.return_value = mock_audio_instance
 
-            audio_recorder.AudioRecorder(test_config)
+            recorder = audio_recorder.AudioRecorder(test_config)
+            recorder.check_microphone_signal()
 
             mock_audio_instance.open.assert_called()
             mock_stream.read.assert_called()

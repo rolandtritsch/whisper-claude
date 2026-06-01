@@ -86,7 +86,7 @@ run: ## Run whisper-wayland service
 .PHONY: run-debug
 run-debug: ## Run whisper-wayland service with debug logging
 	@echo "Starting whisper-wayland with debug logging..."
-	WW_MIC_STARTUP_CHECK=true WW_SUPPRESS_AUDIO_WARNINGS=false WW_LOG_LEVEL=DEBUG uv run whisper-wayland
+	WW_MIC_STARTUP_CHECK=auto WW_SUPPRESS_AUDIO_WARNINGS=false WW_LOG_LEVEL=DEBUG uv run whisper-wayland
 
 .PHONY: tests
 tests: tests-unit tests-integration ## Run all tests with coverage

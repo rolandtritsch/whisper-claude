@@ -83,8 +83,8 @@ class Config:
         return self._property_handlers.get_max_recording_duration()
 
     @property
-    def mic_startup_check(self) -> bool:
-        """Whether to run microphone signal checks during startup."""
+    def mic_startup_check(self) -> str:
+        """Microphone startup check mode."""
         return self._property_handlers.get_mic_startup_check()
 
     @property

@@ -183,9 +183,6 @@ class AudioSystemValidator:
         input_device_index: typing.Optional[int],
     ) -> None:
         """Run a short startup signal check against the selected microphone."""
-        if not config.mic_startup_check:
-            return
-
         stream: typing.Any = None
         sample_rate = self._get_check_sample_rate(audio, config, input_device_index)
         duration = config.mic_check_duration

@@ -105,10 +105,16 @@ class PropertyHandlers:
             _logger.error(f"Invalid WW_MAX_RECORDING_DURATION: {e}")
             raise PropertyHandlerError(f"Invalid WW_MAX_RECORDING_DURATION: {e}") from e
 
-    def get_mic_startup_check(self) -> bool:
-        """Get whether to run microphone signal checks during startup."""
-        value = os.getenv("WW_MIC_STARTUP_CHECK", "false").strip().lower()
-        return value in {"1", "true", "yes", "on"}
+    def get_mic_startup_check(self) -> str:
+        """Get microphone startup check mode."""
+        value = os.getenv("WW_MIC_STARTUP_CHECK", "none").strip().lower()
+        valid_modes = ["none", "auto", "manual"]
+        if value not in valid_modes:
+            _logger.warning(
+                f"Invalid WW_MIC_STARTUP_CHECK '{value}', using none. Valid modes: {valid_modes}"
+            )
+            return "none"
+        return value
 
     def get_mic_check_duration(self) -> float:
         """Get microphone startup check duration in seconds.

@@ -28,7 +28,7 @@ class TestConfig:
                 assert test_config.audio_sample_rate == ww.Constants.DEFAULT_SAMPLE_RATE
                 assert test_config.audio_chunk_size == ww.Constants.DEFAULT_CHUNK_SIZE
                 assert test_config.max_recording_duration == ww.Constants.DEFAULT_RECORDING_DURATION
-                assert not test_config.mic_startup_check
+                assert test_config.mic_startup_check == "none"
                 assert test_config.mic_check_duration == ww.Constants.DEFAULT_MIC_CHECK_DURATION
                 assert test_config.log_level == "INFO"
                 assert test_config.hotkey == "ctrl+compose"
@@ -54,7 +54,7 @@ class TestConfig:
             "WW_AUDIO_SAMPLE_RATE": "44100",
             "WW_AUDIO_CHUNK_SIZE": "2048",
             "WW_MAX_RECORDING_DURATION": "60",
-            "WW_MIC_STARTUP_CHECK": "true",
+            "WW_MIC_STARTUP_CHECK": "auto",
             "WW_MIC_CHECK_DURATION": "0.5",
             "WW_LOG_LEVEL": "DEBUG",
             "WW_HOTKEY": "alt+space",
@@ -69,7 +69,7 @@ class TestConfig:
             assert test_config.audio_sample_rate == ww.Constants.HIGH_QUALITY_SAMPLE_RATE
             assert test_config.audio_chunk_size == ww.Constants.LARGE_CHUNK_SIZE
             assert test_config.max_recording_duration == ww.Constants.LONG_RECORDING_DURATION
-            assert test_config.mic_startup_check
+            assert test_config.mic_startup_check == "auto"
             assert test_config.mic_check_duration == expected_mic_check_duration
             assert test_config.log_level == "DEBUG"
             assert test_config.hotkey == "alt+space"

@@ -106,13 +106,17 @@ WW_ENV_FILE=/path/to/custom.env uv run whisper-wayland
 | `WW_AUDIO_SAMPLE_RATE` | Audio recording sample rate | `16000` | No |
 | `WW_AUDIO_CHUNK_SIZE` | Audio recording chunk size in samples | `1024` | No |
 | `WW_MAX_RECORDING_DURATION` | Maximum recording duration in seconds | `30` | No |
-| `WW_MIC_STARTUP_CHECK` | Run a short microphone signal check at startup | `false` | No |
+| `WW_MIC_STARTUP_CHECK` | Startup microphone check mode (none, auto, manual) | `none` | No |
 | `WW_MIC_CHECK_DURATION` | Microphone startup check duration in seconds | `1.0` | No |
 | `WW_SUPPRESS_AUDIO_WARNINGS` | Hide native ALSA/JACK warning output during audio probing | `true` | No |
 | `WW_LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO` | No |
 | `WW_HOTKEY` | Push-to-talk key combination | `ctrl+compose` | No |
 | `WW_TEXT_INSERTION_DELAY` | Delay before inserting transcribed text in seconds | `0.1` | No |
 | `WW_TEXT_INSERTION_METHOD` | Text insertion method (wtype, ydotool, xdotool, clipboard) | `ydotool` | No |
+
+`WW_MIC_STARTUP_CHECK=auto` samples the selected microphone and reports signal levels.
+`WW_MIC_STARTUP_CHECK=manual` prompts you to count from 1 to 10, records the sample,
+transcribes it, and verifies that the count was recognized.
 
 ### Model Selection Guide
 

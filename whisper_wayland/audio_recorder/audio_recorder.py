@@ -48,7 +48,7 @@ class AudioRecorder:
             input_device_index = self._audio_validator.find_preferred_input_device(
                 self._audio, config
             )
-            self._audio_validator.check_microphone_signal(self._audio, config, input_device_index)
+            self._input_device_index = input_device_index
             self._recording_engine = RecordingEngine.new(self._audio, config, input_device_index)
 
             _logger.info("Audio recorder initialized successfully")
@@ -104,6 +104,12 @@ class AudioRecorder:
             List of dictionaries containing device information
         """
         return self._audio_validator.get_audio_devices(self._audio)
+
+    def check_microphone_signal(self) -> None:
+        """Run a short signal check against the selected microphone."""
+        self._audio_validator.check_microphone_signal(
+            self._audio, self.config, self._input_device_index
+        )
 
     def close(self) -> None:
         """Clean up audio resources."""
