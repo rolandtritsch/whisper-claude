@@ -38,6 +38,8 @@ class KeyMapping:
             evdev.ecodes.KEY_RIGHTALT: "alt",
             evdev.ecodes.KEY_LEFTSHIFT: "shift",
             evdev.ecodes.KEY_RIGHTSHIFT: "shift",
+            evdev.ecodes.KEY_LEFTMETA: "leftmeta",
+            evdev.ecodes.KEY_RIGHTMETA: "rightmeta",
             evdev.ecodes.KEY_SPACE: "space",
             evdev.ecodes.KEY_ENTER: "enter",
             evdev.ecodes.KEY_ESC: "esc",
@@ -138,6 +140,10 @@ class KeyMapping:
             "escape": "esc",
             "compose": "compose",
             "menu": "menu",
+            "leftmeta": "leftmeta",
+            "rightmeta": "rightmeta",
+            "leftsuper": "leftmeta",
+            "rightsuper": "rightmeta",
         }
 
         hotkey_combination: set[str] = set()

@@ -21,10 +21,12 @@ def test_config() -> ww.Config:
 
 
 @pytest.fixture
-def test_config_with_hotkey() -> ww.Config:
+def test_config_with_hotkey() -> typing.Generator[ww.Config, None, None]:
     """Create test configuration with specific hotkey."""
-    with unittest.mock.patch.dict(os.environ, {"HOTKEY": "compose"}):
-        return ww.Config()
+    with unittest.mock.patch.dict(
+        os.environ, {"OPENAI_API_KEY": "sk-test123", "HOTKEY": "ctrl+compose"}
+    ):
+        yield ww.Config()
 
 
 @pytest.fixture
