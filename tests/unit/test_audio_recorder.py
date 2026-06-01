@@ -28,7 +28,7 @@ class TestAudioRecorder:
     @pytest.mark.parametrize("value", ["0", "false", "no", "off"])
     def test_audio_warnings_can_be_unsuppressed(self, value: str) -> None:
         """Test disabling native audio warning suppression."""
-        with unittest.mock.patch.dict(os.environ, {"SUPPRESS_AUDIO_WARNINGS": value}):
+        with unittest.mock.patch.dict(os.environ, {"WW_SUPPRESS_AUDIO_WARNINGS": value}):
             assert not should_suppress_audio_warnings()
 
     def test_signal_metrics_detect_audio_level(self) -> None:
@@ -53,9 +53,9 @@ class TestAudioRecorder:
         with unittest.mock.patch.dict(
             os.environ,
             {
-                "OPENAI_API_KEY": "sk-test123",
-                "MIC_STARTUP_CHECK": "true",
-                "MIC_CHECK_DURATION": "0.01",
+                "WW_OPENAI_API_KEY": "sk-test123",
+                "WW_MIC_STARTUP_CHECK": "true",
+                "WW_MIC_CHECK_DURATION": "0.01",
             },
         ):
             test_config = ww.Config()
@@ -199,7 +199,7 @@ class TestAudioRecorder:
         """Test recording stops at maximum duration."""
         # Set short max duration for test
         with unittest.mock.patch.dict(
-            os.environ, {"OPENAI_API_KEY": "sk-test123", "MAX_RECORDING_DURATION": "1"}
+            os.environ, {"WW_OPENAI_API_KEY": "sk-test123", "WW_MAX_RECORDING_DURATION": "1"}
         ):
             short_config = ww.Config()
 
@@ -406,7 +406,7 @@ class TestAudioRecorder:
 
     def test_create_audio_recorder(self) -> None:
         """Test AudioRecorder.new static method."""
-        with unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test123"}):
+        with unittest.mock.patch.dict(os.environ, {"WW_OPENAI_API_KEY": "sk-test123"}):
             test_config = ww.Config()
 
         with unittest.mock.patch(

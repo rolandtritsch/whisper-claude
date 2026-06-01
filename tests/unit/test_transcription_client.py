@@ -303,7 +303,7 @@ class TestTranscriptionClient:
 
     def test_create_transcription_client(self) -> None:
         """Test TranscriptionClient.new static method."""
-        with unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test123"}):
+        with unittest.mock.patch.dict(os.environ, {"WW_OPENAI_API_KEY": "sk-test123"}):
             test_config = ww.Config()
 
         with unittest.mock.patch(

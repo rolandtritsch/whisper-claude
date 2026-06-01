@@ -1,7 +1,7 @@
 """Whisper Wayland - Real API Integration Tests
 
 Integration tests using real OpenAI API. These tests require
-a valid OPENAI_API_KEY environment variable and will make
+a valid WW_OPENAI_API_KEY environment variable and will make
 actual API calls to OpenAI.
 """
 
@@ -21,9 +21,9 @@ class TestRealAPIIntegration:
     @pytest.fixture
     def test_config(self) -> "ww.Config":
         """Create configuration for real API testing."""
-        api_key = os.environ.get("OPENAI_API_KEY")
+        api_key = os.environ.get("WW_OPENAI_API_KEY")
         if not api_key:
-            pytest.skip("OPENAI_API_KEY not set, skipping real API tests")
+            pytest.skip("WW_OPENAI_API_KEY not set, skipping real API tests")
 
         return ww.Config()
 
@@ -60,7 +60,7 @@ class TestRealAPIIntegration:
 
         for model in models_to_test:
             # Update config for this model
-            with unittest.mock.patch.dict(os.environ, {"WHISPER_MODEL": model}):
+            with unittest.mock.patch.dict(os.environ, {"WW_WHISPER_MODEL": model}):
                 model_config = ww.Config()
 
                 client = transcription_client.TranscriptionClient.new(model_config)
@@ -135,21 +135,21 @@ class TestConfigurationIntegration:
 
     def test_config_with_real_env_file(self) -> None:
         """Test configuration loading from real .env file."""
-        api_key = os.environ.get("OPENAI_API_KEY")
+        api_key = os.environ.get("WW_OPENAI_API_KEY")
         if not api_key:
-            pytest.skip("OPENAI_API_KEY not set, skipping env file test")
+            pytest.skip("WW_OPENAI_API_KEY not set, skipping env file test")
 
         # Create temporary .env file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
-            f.write(f"OPENAI_API_KEY={api_key}\n")
-            f.write("WHISPER_MODEL=large\n")
-            f.write(f"AUDIO_SAMPLE_RATE={ww.Constants.HIGH_QUALITY_SAMPLE_RATE}\n")
-            f.write("LOG_LEVEL=DEBUG\n")
+            f.write(f"WW_OPENAI_API_KEY={api_key}\n")
+            f.write("WW_WHISPER_MODEL=large\n")
+            f.write(f"WW_AUDIO_SAMPLE_RATE={ww.Constants.HIGH_QUALITY_SAMPLE_RATE}\n")
+            f.write("WW_LOG_LEVEL=DEBUG\n")
             env_file_path = f.name
 
         # Temporarily remove environment variables to test .env file loading
         old_env = {}
-        env_vars_to_clear = ["LOG_LEVEL", "WHISPER_MODEL", "AUDIO_SAMPLE_RATE"]
+        env_vars_to_clear = ["WW_LOG_LEVEL", "WW_WHISPER_MODEL", "WW_AUDIO_SAMPLE_RATE"]
         for var in env_vars_to_clear:
             if var in os.environ:
                 old_env[var] = os.environ.pop(var)
@@ -171,7 +171,7 @@ class TestConfigurationIntegration:
 
     def test_config_validation_with_invalid_api_key(self) -> None:
         """Test configuration validation with invalid API key format."""
-        with unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "invalid-key-format"}):
+        with unittest.mock.patch.dict(os.environ, {"WW_OPENAI_API_KEY": "invalid-key-format"}):
             # Should still create config (validation happens at API level)
             invalid_config = ww.Config()
             assert invalid_config.openai_api_key == "invalid-key-format"
@@ -194,9 +194,9 @@ class TestEndToEndIntegration:
 
     def test_full_audio_workflow_simulation(self) -> None:
         """Test full workflow simulation without actual audio recording."""
-        api_key = os.environ.get("OPENAI_API_KEY")
+        api_key = os.environ.get("WW_OPENAI_API_KEY")
         if not api_key:
-            pytest.skip("OPENAI_API_KEY not set, skipping E2E test")
+            pytest.skip("WW_OPENAI_API_KEY not set, skipping E2E test")
 
         # Create config
         test_config = ww.Config()

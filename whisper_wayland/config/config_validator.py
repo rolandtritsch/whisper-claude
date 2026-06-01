@@ -31,12 +31,12 @@ class ConfigValidator:
         Raises:
             ConfigValidationError: If required configuration is missing
         """
-        required_vars = ["OPENAI_API_KEY"]
+        required_vars = {"WW_OPENAI_API_KEY": "openai_api_key"}
         missing_vars = []
 
-        for var in required_vars:
-            if not getattr(config_instance, var.lower(), None):
-                missing_vars.append(var)
+        for env_var, config_attr in required_vars.items():
+            if not getattr(config_instance, config_attr, None):
+                missing_vars.append(env_var)
 
         if missing_vars:
             error_msg = f"Missing required environment variables: {', '.join(missing_vars)}"

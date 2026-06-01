@@ -123,7 +123,7 @@ class TestLoggingConfig:
         """Test that appropriate formatters are selected."""
         # Test DEBUG level gets detailed formatter
         with unittest.mock.patch.dict(
-            os.environ, {"OPENAI_API_KEY": "sk-test123", "LOG_LEVEL": "DEBUG"}
+            os.environ, {"WW_OPENAI_API_KEY": "sk-test123", "WW_LOG_LEVEL": "DEBUG"}
         ):
             debug_config = ww.Config()
 
@@ -142,7 +142,7 @@ class TestLoggingConfig:
 
         # Test INFO level gets simple formatter
         with unittest.mock.patch.dict(
-            os.environ, {"OPENAI_API_KEY": "sk-test123", "LOG_LEVEL": "INFO"}
+            os.environ, {"WW_OPENAI_API_KEY": "sk-test123", "WW_LOG_LEVEL": "INFO"}
         ):
             info_config = ww.Config()
 

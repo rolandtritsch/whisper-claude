@@ -97,7 +97,7 @@ Whisper Wayland follows a **modular architecture** with clear separation of conc
 3. **Configure environment:**
    ```bash
    cp .env.example .env
-   # Edit .env and add your OPENAI_API_KEY
+   # Edit .env and add your WW_OPENAI_API_KEY
    ```
 
 ### Branch Management
@@ -231,7 +231,7 @@ git branch -d your-branch-name
 6. Add integration tests if component has external dependencies
 
 #### Debugging Tips
-1. **Enable debug logging**: `LOG_LEVEL=DEBUG uv run whisper-wayland`
+1. **Enable debug logging**: `WW_LOG_LEVEL=DEBUG uv run whisper-wayland`
 2. **Component isolation**: Test individual components in isolation
 3. **Mock external services**: Use mocks to isolate issues
 4. **Check configuration**: Verify environment variables are correct

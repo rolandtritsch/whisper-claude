@@ -64,7 +64,7 @@ sudo dnf install portaudio-devel python3-devel wtype
    ```bash
    # Create and configure .env file
    cp .env.example .env
-   nano .env  # Add your OPENAI_API_KEY
+   nano .env  # Add your WW_OPENAI_API_KEY
    ```
 
 4. **Run the service:**
@@ -101,14 +101,18 @@ WW_ENV_FILE=/path/to/custom.env uv run whisper-wayland
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `WW_ENV_FILE` | Path to custom environment file to load before configuration | - | No |
-| `OPENAI_API_KEY` | OpenAI API key for Whisper service | - | Yes |
-| `WHISPER_MODEL` | Model to use (tiny, base, small, medium, large) | `base` | No |
-| `AUDIO_SAMPLE_RATE` | Audio recording sample rate | `16000` | No |
-| `MAX_RECORDING_DURATION` | Maximum recording duration in seconds | `30` | No |
-| `MIC_STARTUP_CHECK` | Run a short microphone signal check at startup | `false` | No |
-| `MIC_CHECK_DURATION` | Microphone startup check duration in seconds | `1.0` | No |
-| `LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO` | No |
-| `HOTKEY` | Push-to-talk key combination | `ctrl+compose` | No |
+| `WW_OPENAI_API_KEY` | OpenAI API key for Whisper service | - | Yes |
+| `WW_WHISPER_MODEL` | Model to use (tiny, base, small, medium, large) | `base` | No |
+| `WW_AUDIO_SAMPLE_RATE` | Audio recording sample rate | `16000` | No |
+| `WW_AUDIO_CHUNK_SIZE` | Audio recording chunk size in samples | `1024` | No |
+| `WW_MAX_RECORDING_DURATION` | Maximum recording duration in seconds | `30` | No |
+| `WW_MIC_STARTUP_CHECK` | Run a short microphone signal check at startup | `false` | No |
+| `WW_MIC_CHECK_DURATION` | Microphone startup check duration in seconds | `1.0` | No |
+| `WW_SUPPRESS_AUDIO_WARNINGS` | Hide native ALSA/JACK warning output during audio probing | `true` | No |
+| `WW_LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO` | No |
+| `WW_HOTKEY` | Push-to-talk key combination | `ctrl+compose` | No |
+| `WW_TEXT_INSERTION_DELAY` | Delay before inserting transcribed text in seconds | `0.1` | No |
+| `WW_TEXT_INSERTION_METHOD` | Text insertion method (wtype, ydotool, xdotool, clipboard) | `ydotool` | No |
 
 ### Model Selection Guide
 
@@ -135,12 +139,12 @@ WW_ENV_FILE=/path/to/custom.env uv run whisper-wayland
 **Hotkey not working:**
 - Verify Compose key is configured: e.g. `setxkbmap -option compose:lctrl`
 - Check if another application is using the key
-- Try alternative keys by setting `HOTKEY` environment variable
+- Try alternative keys by setting `WW_HOTKEY` environment variable
 
 **Service fails to start:**
 - Check your OpenAI API key is valid
 - Ensure all system dependencies are installed
-- Enable debug logging: `LOG_LEVEL=DEBUG`
+- Enable debug logging: `WW_LOG_LEVEL=DEBUG`
 
 ### Getting Help
 
@@ -148,7 +152,7 @@ For detailed troubleshooting and logs:
 
 ```bash
 # Enable debug logging
-export LOG_LEVEL=DEBUG
+export WW_LOG_LEVEL=DEBUG
 uv run whisper-wayland
 ```
 

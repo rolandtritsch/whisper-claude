@@ -13,10 +13,17 @@ import pytest
 import whisper_wayland as ww
 
 
+@pytest.fixture(autouse=True)
+def default_unit_api_key() -> typing.Generator[None, None, None]:
+    """Provide a default API key for unit tests that construct Config directly."""
+    with unittest.mock.patch.dict(os.environ, {"WW_OPENAI_API_KEY": "sk-test123"}):
+        yield
+
+
 @pytest.fixture
 def test_config() -> ww.Config:
     """Create test configuration."""
-    with unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test123"}):
+    with unittest.mock.patch.dict(os.environ, {"WW_OPENAI_API_KEY": "sk-test123"}):
         return ww.Config()
 
 
@@ -24,7 +31,7 @@ def test_config() -> ww.Config:
 def test_config_with_hotkey() -> typing.Generator[ww.Config, None, None]:
     """Create test configuration with specific hotkey."""
     with unittest.mock.patch.dict(
-        os.environ, {"OPENAI_API_KEY": "sk-test123", "HOTKEY": "ctrl+compose"}
+        os.environ, {"WW_OPENAI_API_KEY": "sk-test123", "WW_HOTKEY": "ctrl+compose"}
     ):
         yield ww.Config()
 
@@ -96,9 +103,9 @@ def test_config_text_inserter() -> ww.Config:
     with unittest.mock.patch.dict(
         os.environ,
         {
-            "OPENAI_API_KEY": "sk-test123",
-            "TEXT_INSERTION_METHOD": "ydotool",
-            "TEXT_INSERTION_DELAY": "0.1",
+            "WW_OPENAI_API_KEY": "sk-test123",
+            "WW_TEXT_INSERTION_METHOD": "ydotool",
+            "WW_TEXT_INSERTION_DELAY": "0.1",
         },
     ):
         return ww.Config()

@@ -30,15 +30,19 @@ def clean_environment() -> typing.Generator[None, None, None]:
 
     # Ensure clean test environment
     test_env_vars = [
-        "OPENAI_API_KEY",
-        "WHISPER_MODEL",
-        "AUDIO_SAMPLE_RATE",
-        "AUDIO_CHUNK_SIZE",
-        "MAX_RECORDING_DURATION",
-        "LOG_LEVEL",
-        "HOTKEY",
-        "TEXT_INSERTION_DELAY",
-        "TEXT_INSERTION_METHOD",
+        "WW_OPENAI_API_KEY",
+        "WW_WHISPER_MODEL",
+        "WW_AUDIO_SAMPLE_RATE",
+        "WW_AUDIO_CHUNK_SIZE",
+        "WW_MAX_RECORDING_DURATION",
+        "WW_MIC_STARTUP_CHECK",
+        "WW_MIC_CHECK_DURATION",
+        "WW_LOG_LEVEL",
+        "WW_HOTKEY",
+        "WW_TEXT_INSERTION_DELAY",
+        "WW_TEXT_INSERTION_METHOD",
+        "WW_SUPPRESS_AUDIO_WARNINGS",
+        "WW_ENV_FILE",
     ]
 
     yield
@@ -58,9 +62,9 @@ def clean_environment() -> typing.Generator[None, None, None]:
 def test_config() -> typing.Generator[ww.Config, None, None]:
     """Provide test configuration loaded from .env file."""
     # Ensure .env file is loaded and API key is available
-    if not os.getenv("OPENAI_API_KEY"):
+    if not os.getenv("WW_OPENAI_API_KEY"):
         pytest.skip(
-            "OPENAI_API_KEY not found in environment. Ensure .env file is properly configured."
+            "WW_OPENAI_API_KEY not found in environment. Ensure .env file is properly configured."
         )
 
     yield ww.Config()

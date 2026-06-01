@@ -7,7 +7,7 @@ import typing
 
 def should_suppress_audio_warnings() -> bool:
     """Return whether native audio backend warnings should be hidden."""
-    value = os.getenv("SUPPRESS_AUDIO_WARNINGS", "true").strip().lower()
+    value = os.getenv("WW_SUPPRESS_AUDIO_WARNINGS", "true").strip().lower()
     return value not in {"0", "false", "no", "off"}
 
 

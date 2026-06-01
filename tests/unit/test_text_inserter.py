@@ -81,7 +81,7 @@ class TestTextInserter:
         """Test that configured method is used when available."""
         with unittest.mock.patch.dict(
             os.environ,
-            {"OPENAI_API_KEY": "sk-test123", "TEXT_INSERTION_METHOD": "xdotool"},
+            {"WW_OPENAI_API_KEY": "sk-test123", "WW_TEXT_INSERTION_METHOD": "xdotool"},
         ):
             # Make both ydotool and xdotool available
             mock_shutil_which.side_effect = lambda tool: tool in ["ydotool", "xdotool"]
@@ -96,8 +96,8 @@ class TestTextInserter:
         with unittest.mock.patch.dict(
             os.environ,
             {
-                "OPENAI_API_KEY": "sk-test123",
-                "TEXT_INSERTION_METHOD": "nonexistent",  # Configure a method that doesn't exist
+                "WW_OPENAI_API_KEY": "sk-test123",
+                "WW_TEXT_INSERTION_METHOD": "nonexistent",  # Configure a method that doesn't exist
             },
         ):
             with unittest.mock.patch(
@@ -161,7 +161,7 @@ class TestTextInserter:
         self, test_config: "ww.Config", mock_shutil_which: unittest.mock.Mock
     ) -> None:
         """Test text insertion respects configured delay."""
-        with unittest.mock.patch.dict(os.environ, {"TEXT_INSERTION_DELAY": "0.5"}):
+        with unittest.mock.patch.dict(os.environ, {"WW_TEXT_INSERTION_DELAY": "0.5"}):
             delay_config = ww.Config()
             inserter = text_inserter.TextInserter(delay_config)
 

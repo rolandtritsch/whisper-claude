@@ -58,8 +58,8 @@ help: ## Show available commands
 		}' $(MAKEFILE_LIST)
 	@echo ""
 	@echo "Environment:"
-	@echo "  Set OPENAI_API_KEY environment variable for API tests"
-	@echo "  Or create .env file with OPENAI_API_KEY=your_key_here"
+	@echo "  Set WW_OPENAI_API_KEY environment variable for API tests"
+	@echo "  Or create .env file with WW_OPENAI_API_KEY=your_key_here"
 
 .PHONY: install
 install: ## Install dependencies with uv
@@ -86,13 +86,13 @@ run: ## Run whisper-wayland service
 .PHONY: run-debug
 run-debug: ## Run whisper-wayland service with debug logging
 	@echo "Starting whisper-wayland with debug logging..."
-	MIC_STARTUP_CHECK=true SUPPRESS_AUDIO_WARNINGS=false LOG_LEVEL=DEBUG uv run whisper-wayland
+	WW_MIC_STARTUP_CHECK=true WW_SUPPRESS_AUDIO_WARNINGS=false WW_LOG_LEVEL=DEBUG uv run whisper-wayland
 
 .PHONY: tests
 tests: tests-unit tests-integration ## Run all tests with coverage
 
 .PHONY: tests-integration
-tests-integration: ## Run only integration tests (requires OPENAI_API_KEY)
+tests-integration: ## Run only integration tests (requires WW_OPENAI_API_KEY)
 	@echo "Running integration tests..."
 	uv run pytest tests/integration -v
 

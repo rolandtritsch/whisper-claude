@@ -28,7 +28,7 @@ class TestKeyMonitor:
 
     def test_key_monitor_initialization_custom_hotkey(self) -> None:
         """Test key monitor initialization with custom hotkey."""
-        with unittest.mock.patch.dict(os.environ, {"HOTKEY": "ctrl+shift+f1"}):
+        with unittest.mock.patch.dict(os.environ, {"WW_HOTKEY": "ctrl+shift+f1"}):
             hotkey_config = ww.Config()
             monitor = key_monitor.KeyMonitor(hotkey_config)
 
@@ -36,7 +36,7 @@ class TestKeyMonitor:
 
     def test_key_monitor_initialization_single_key(self) -> None:
         """Test key monitor initialization with single key."""
-        with unittest.mock.patch.dict(os.environ, {"HOTKEY": "f10"}):
+        with unittest.mock.patch.dict(os.environ, {"WW_HOTKEY": "f10"}):
             f10_config = ww.Config()
             monitor = key_monitor.KeyMonitor(f10_config)
 
@@ -44,7 +44,7 @@ class TestKeyMonitor:
 
     def test_key_monitor_initialization_invalid_hotkey(self) -> None:
         """Test key monitor initialization with invalid hotkey."""
-        with unittest.mock.patch.dict(os.environ, {"HOTKEY": ""}):
+        with unittest.mock.patch.dict(os.environ, {"WW_HOTKEY": ""}):
             empty_config = ww.Config()
             with pytest.raises(key_monitor.KeyMonitorError, match="Hotkey cannot be empty"):
                 key_monitor.KeyMonitor(empty_config)
@@ -66,7 +66,7 @@ class TestKeyMonitor:
         ]
 
         for hotkey_str, expected in test_cases:
-            with unittest.mock.patch.dict(os.environ, {"HOTKEY": hotkey_str}):
+            with unittest.mock.patch.dict(os.environ, {"WW_HOTKEY": hotkey_str}):
                 test_hotkey_config = ww.Config()
                 monitor = key_monitor.KeyMonitor(test_hotkey_config)
                 assert monitor._event_handler._hotkey_combination == expected
@@ -244,7 +244,7 @@ class TestKeyMonitor:
 
     def test_check_hotkey_state_combination(self) -> None:
         """Test hotkey state with key combination."""
-        with unittest.mock.patch.dict(os.environ, {"HOTKEY": "ctrl+alt"}):
+        with unittest.mock.patch.dict(os.environ, {"WW_HOTKEY": "ctrl+alt"}):
             with unittest.mock.patch(
                 "whisper_wayland.key_monitor.event_handler.threading.Thread"
             ) as mock_thread:

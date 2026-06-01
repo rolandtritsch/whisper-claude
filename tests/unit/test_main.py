@@ -146,9 +146,7 @@ class TestMainFunction:
         mock_app = unittest.mock.Mock()
         mock_app_class.return_value = mock_app
 
-        with unittest.mock.patch.dict(
-            "os.environ", {"WW_ENV_FILE": "/path/to/config.env"}
-        ):
+        with unittest.mock.patch.dict("os.environ", {"WW_ENV_FILE": "/path/to/config.env"}):
             with unittest.mock.patch("sys.argv", ["whisper-wayland"]):
                 with pytest.raises(SystemExit) as exc_info:
                     ww.main()
@@ -165,18 +163,14 @@ class TestMainFunction:
         """Test main function with nonexistent environment file."""
         mock_exists.return_value = False
 
-        with unittest.mock.patch.dict(
-            "os.environ", {"WW_ENV_FILE": "/nonexistent/config.env"}
-        ):
+        with unittest.mock.patch.dict("os.environ", {"WW_ENV_FILE": "/nonexistent/config.env"}):
             with unittest.mock.patch("sys.argv", ["whisper-wayland"]):
                 with unittest.mock.patch("builtins.print") as mock_print:
                     with pytest.raises(SystemExit) as exc_info:
                         ww.main()
 
         assert exc_info.value.code == 1
-        mock_print.assert_called_with(
-            "Error: Environment file '/nonexistent/config.env' not found"
-        )
+        mock_print.assert_called_with("Error: Environment file '/nonexistent/config.env' not found")
         mock_app_class.assert_not_called()
 
     @unittest.mock.patch("whisper_wayland.Application")
@@ -189,9 +183,7 @@ class TestMainFunction:
 
         assert exc_info.value.code == 1
         mock_print.assert_any_call("Error: whisper-wayland does not accept command-line arguments")
-        mock_print.assert_any_call(
-            "Set WW_ENV_FILE to load a custom environment file"
-        )
+        mock_print.assert_any_call("Set WW_ENV_FILE to load a custom environment file")
         mock_app_class.assert_not_called()
 
     @unittest.mock.patch("whisper_wayland.Application")

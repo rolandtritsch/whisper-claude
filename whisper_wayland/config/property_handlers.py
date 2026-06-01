@@ -34,10 +34,10 @@ class PropertyHandlers:
         Raises:
             PropertyHandlerError: If API key is not set
         """
-        key = os.getenv("OPENAI_API_KEY", "").strip()
+        key = os.getenv("WW_OPENAI_API_KEY", "").strip()
         if not key:
-            _logger.error("OPENAI_API_KEY is required but not set")
-            raise PropertyHandlerError("OPENAI_API_KEY environment variable is required")
+            _logger.error("WW_OPENAI_API_KEY is required but not set")
+            raise PropertyHandlerError("WW_OPENAI_API_KEY environment variable is required")
         return key
 
     def get_whisper_model(self) -> str:
@@ -46,7 +46,7 @@ class PropertyHandlers:
         Returns:
             Whisper model name
         """
-        return os.getenv("WHISPER_MODEL", "base").strip()
+        return os.getenv("WW_WHISPER_MODEL", "base").strip()
 
     # Audio Configuration
     def get_audio_sample_rate(self) -> int:
@@ -59,13 +59,13 @@ class PropertyHandlers:
             PropertyHandlerError: If sample rate is invalid
         """
         try:
-            rate = int(os.getenv("AUDIO_SAMPLE_RATE", str(ww.Constants.DEFAULT_SAMPLE_RATE)))
+            rate = int(os.getenv("WW_AUDIO_SAMPLE_RATE", str(ww.Constants.DEFAULT_SAMPLE_RATE)))
             if rate <= 0:
                 raise ValueError("Sample rate must be positive")
             return rate
         except ValueError as e:
-            _logger.error(f"Invalid AUDIO_SAMPLE_RATE: {e}")
-            raise PropertyHandlerError(f"Invalid AUDIO_SAMPLE_RATE: {e}") from e
+            _logger.error(f"Invalid WW_AUDIO_SAMPLE_RATE: {e}")
+            raise PropertyHandlerError(f"Invalid WW_AUDIO_SAMPLE_RATE: {e}") from e
 
     def get_audio_chunk_size(self) -> int:
         """Get audio buffer chunk size in samples.
@@ -77,13 +77,13 @@ class PropertyHandlers:
             PropertyHandlerError: If chunk size is invalid
         """
         try:
-            chunk_size = int(os.getenv("AUDIO_CHUNK_SIZE", str(ww.Constants.DEFAULT_CHUNK_SIZE)))
+            chunk_size = int(os.getenv("WW_AUDIO_CHUNK_SIZE", str(ww.Constants.DEFAULT_CHUNK_SIZE)))
             if chunk_size <= 0:
                 raise ValueError("Chunk size must be positive")
             return chunk_size
         except ValueError as e:
-            _logger.error(f"Invalid AUDIO_CHUNK_SIZE: {e}")
-            raise PropertyHandlerError(f"Invalid AUDIO_CHUNK_SIZE: {e}") from e
+            _logger.error(f"Invalid WW_AUDIO_CHUNK_SIZE: {e}")
+            raise PropertyHandlerError(f"Invalid WW_AUDIO_CHUNK_SIZE: {e}") from e
 
     def get_max_recording_duration(self) -> int:
         """Get maximum recording duration in seconds.
@@ -96,18 +96,18 @@ class PropertyHandlers:
         """
         try:
             duration = int(
-                os.getenv("MAX_RECORDING_DURATION", str(ww.Constants.DEFAULT_RECORDING_DURATION))
+                os.getenv("WW_MAX_RECORDING_DURATION", str(ww.Constants.DEFAULT_RECORDING_DURATION))
             )
             if duration <= 0:
                 raise ValueError("Recording duration must be positive")
             return duration
         except ValueError as e:
-            _logger.error(f"Invalid MAX_RECORDING_DURATION: {e}")
-            raise PropertyHandlerError(f"Invalid MAX_RECORDING_DURATION: {e}") from e
+            _logger.error(f"Invalid WW_MAX_RECORDING_DURATION: {e}")
+            raise PropertyHandlerError(f"Invalid WW_MAX_RECORDING_DURATION: {e}") from e
 
     def get_mic_startup_check(self) -> bool:
         """Get whether to run microphone signal checks during startup."""
-        value = os.getenv("MIC_STARTUP_CHECK", "false").strip().lower()
+        value = os.getenv("WW_MIC_STARTUP_CHECK", "false").strip().lower()
         return value in {"1", "true", "yes", "on"}
 
     def get_mic_check_duration(self) -> float:
@@ -121,14 +121,14 @@ class PropertyHandlers:
         """
         try:
             duration = float(
-                os.getenv("MIC_CHECK_DURATION", str(ww.Constants.DEFAULT_MIC_CHECK_DURATION))
+                os.getenv("WW_MIC_CHECK_DURATION", str(ww.Constants.DEFAULT_MIC_CHECK_DURATION))
             )
             if duration <= 0:
                 raise ValueError("Microphone check duration must be positive")
             return duration
         except ValueError as e:
-            _logger.error(f"Invalid MIC_CHECK_DURATION: {e}")
-            raise PropertyHandlerError(f"Invalid MIC_CHECK_DURATION: {e}") from e
+            _logger.error(f"Invalid WW_MIC_CHECK_DURATION: {e}")
+            raise PropertyHandlerError(f"Invalid WW_MIC_CHECK_DURATION: {e}") from e
 
     # Logging Configuration
     def get_log_level(self) -> str:
@@ -137,11 +137,11 @@ class PropertyHandlers:
         Returns:
             Logging level string
         """
-        level = os.getenv("LOG_LEVEL", "INFO").upper().strip()
+        level = os.getenv("WW_LOG_LEVEL", "INFO").upper().strip()
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if level not in valid_levels:
             _logger.warning(
-                f"Invalid LOG_LEVEL '{level}', using INFO. Valid levels: {valid_levels}"
+                f"Invalid WW_LOG_LEVEL '{level}', using INFO. Valid levels: {valid_levels}"
             )
             return "INFO"
         return level
@@ -153,7 +153,7 @@ class PropertyHandlers:
         Returns:
             Hotkey combination string
         """
-        return os.getenv("HOTKEY", "ctrl+compose").strip().lower()
+        return os.getenv("WW_HOTKEY", "ctrl+compose").strip().lower()
 
     # Text Insertion Configuration
     def get_text_insertion_delay(self) -> float:
@@ -167,14 +167,14 @@ class PropertyHandlers:
         """
         try:
             delay = float(
-                os.getenv("TEXT_INSERTION_DELAY", str(ww.Constants.DEFAULT_TEXT_INSERTION_DELAY))
+                os.getenv("WW_TEXT_INSERTION_DELAY", str(ww.Constants.DEFAULT_TEXT_INSERTION_DELAY))
             )
             if delay < 0:
                 raise ValueError("Text insertion delay must be non-negative")
             return delay
         except ValueError as e:
-            _logger.error(f"Invalid TEXT_INSERTION_DELAY: {e}")
-            raise PropertyHandlerError(f"Invalid TEXT_INSERTION_DELAY: {e}") from e
+            _logger.error(f"Invalid WW_TEXT_INSERTION_DELAY: {e}")
+            raise PropertyHandlerError(f"Invalid WW_TEXT_INSERTION_DELAY: {e}") from e
 
     def get_text_insertion_method(self) -> str:
         """Get text insertion method to use.
@@ -182,11 +182,11 @@ class PropertyHandlers:
         Returns:
             Text insertion method name
         """
-        method = os.getenv("TEXT_INSERTION_METHOD", "ydotool").strip().lower()
+        method = os.getenv("WW_TEXT_INSERTION_METHOD", "ydotool").strip().lower()
         valid_methods = ["wtype", "ydotool", "xdotool", "clipboard"]
         if method not in valid_methods:
             _logger.warning(
-                f"Invalid TEXT_INSERTION_METHOD '{method}', using ydotool. "
+                f"Invalid WW_TEXT_INSERTION_METHOD '{method}', using ydotool. "
                 f"Valid methods: {valid_methods}"
             )
             return "ydotool"
