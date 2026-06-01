@@ -98,6 +98,8 @@ All configuration is handled through environment variables and/or a/the `.env` f
 | `WHISPER_MODEL` | Model to use (tiny, base, small, medium, large) | `base` | No |
 | `AUDIO_SAMPLE_RATE` | Audio recording sample rate | `16000` | No |
 | `MAX_RECORDING_DURATION` | Maximum recording duration in seconds | `30` | No |
+| `MIC_STARTUP_CHECK` | Run a short microphone signal check at startup | `false` | No |
+| `MIC_CHECK_DURATION` | Microphone startup check duration in seconds | `1.0` | No |
 | `LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO` | No |
 | `HOTKEY` | Push-to-talk key combination | `ctrl+compose` | No |
 

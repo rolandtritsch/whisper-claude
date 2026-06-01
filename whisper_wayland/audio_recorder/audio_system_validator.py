@@ -4,7 +4,10 @@ Audio system validation and device discovery functionality.
 """
 
 import logging
+import math
+import sys
 import typing
+from array import array
 
 import pyaudio
 
@@ -96,7 +99,9 @@ class AudioSystemValidator:
             _logger.error(f"Audio system validation failed: {e}")
             raise AudioSystemValidationError(f"Audio system validation failed: {e}") from e
 
-    def find_preferred_input_device(self, audio: pyaudio.PyAudio) -> typing.Optional[int]:
+    def find_preferred_input_device(
+        self, audio: pyaudio.PyAudio, config: "ww.Config"
+    ) -> typing.Optional[int]:
         """Find the preferred input device, prioritizing USB then Bluetooth headsets.
 
         Args:
@@ -128,17 +133,167 @@ class AudioSystemValidator:
             _logger.warning(f"Error scanning audio devices: {e}")
             return None
 
-        if usb_candidates:
-            idx, name = usb_candidates[0]
-            _logger.info(f"Auto-selected USB input device: {name} (index {idx})")
-            return idx
-        if bt_candidates:
-            idx, name = bt_candidates[0]
-            _logger.info(f"Auto-selected Bluetooth input device: {name} (index {idx})")
-            return idx
+        for idx, name in usb_candidates:
+            if self._can_open_input_device(audio, config, idx):
+                _logger.info(f"Auto-selected USB input device: {name} (index {idx})")
+                return idx
+            _logger.warning(f"Skipping unavailable USB input device: {name} (index {idx})")
+
+        for idx, name in bt_candidates:
+            if self._can_open_input_device(audio, config, idx):
+                _logger.info(f"Auto-selected Bluetooth input device: {name} (index {idx})")
+                return idx
+            _logger.warning(f"Skipping unavailable Bluetooth input device: {name} (index {idx})")
 
         _logger.debug("No USB/Bluetooth headset found, using system default input device")
         return None
+
+    def _can_open_input_device(
+        self, audio: pyaudio.PyAudio, config: "ww.Config", input_device_index: int
+    ) -> bool:
+        """Return whether PyAudio can open an input stream for a device."""
+        stream: typing.Any = None
+        sample_rate = self._get_check_sample_rate(audio, config, input_device_index)
+        try:
+            with suppress_native_stderr():
+                stream = audio.open(
+                    format=pyaudio.paInt16,
+                    channels=1,
+                    rate=sample_rate,
+                    input=True,
+                    frames_per_buffer=config.audio_chunk_size,
+                    input_device_index=input_device_index,
+                )
+            return True
+        except Exception as e:
+            _logger.debug(f"Input device open check failed for index {input_device_index}: {e}")
+            return False
+        finally:
+            if stream:
+                try:
+                    stream.stop_stream()
+                    stream.close()
+                except Exception as e:
+                    _logger.debug(f"Error closing input device check stream: {e}")
+
+    def check_microphone_signal(
+        self,
+        audio: pyaudio.PyAudio,
+        config: "ww.Config",
+        input_device_index: typing.Optional[int],
+    ) -> None:
+        """Run a short startup signal check against the selected microphone."""
+        if not config.mic_startup_check:
+            return
+
+        stream: typing.Any = None
+        sample_rate = self._get_check_sample_rate(audio, config, input_device_index)
+        duration = config.mic_check_duration
+        chunk_size = config.audio_chunk_size
+        chunks_to_read = max(1, math.ceil(sample_rate * duration / chunk_size))
+        frames: list[bytes] = []
+
+        try:
+            _logger.info(f"Running microphone startup check for {duration:.1f}s...")
+            with suppress_native_stderr():
+                stream = audio.open(
+                    format=pyaudio.paInt16,
+                    channels=1,
+                    rate=sample_rate,
+                    input=True,
+                    frames_per_buffer=chunk_size,
+                    input_device_index=input_device_index,
+                )
+
+            for _ in range(chunks_to_read):
+                frames.append(stream.read(chunk_size, exception_on_overflow=False))
+
+            metrics = self._calculate_signal_metrics(b"".join(frames))
+            self._log_signal_metrics(metrics)
+        except Exception as e:
+            _logger.warning(f"Microphone startup check could not complete: {e}")
+        finally:
+            if stream:
+                try:
+                    stream.stop_stream()
+                    stream.close()
+                except Exception as e:
+                    _logger.debug(f"Error closing microphone check stream: {e}")
+
+    def _get_check_sample_rate(
+        self,
+        audio: pyaudio.PyAudio,
+        config: "ww.Config",
+        input_device_index: typing.Optional[int],
+    ) -> int:
+        """Get the sample rate to use for the startup microphone check."""
+        if input_device_index is None:
+            return config.audio_sample_rate
+
+        try:
+            with suppress_native_stderr():
+                info = audio.get_device_info_by_index(input_device_index)
+            return int(info["defaultSampleRate"])
+        except Exception as e:
+            _logger.debug(f"Could not read microphone check sample rate: {e}")
+            return config.audio_sample_rate
+
+    def _calculate_signal_metrics(self, audio_data: bytes) -> dict[str, float | int]:
+        """Calculate basic signal quality metrics from 16-bit mono PCM data."""
+        samples = array("h")
+        samples.frombytes(audio_data[: len(audio_data) - (len(audio_data) % 2)])
+        if sys.byteorder != "little":
+            samples.byteswap()
+
+        sample_count = len(samples)
+        if sample_count == 0:
+            return {
+                "sample_count": 0,
+                "rms_dbfs": float("-inf"),
+                "peak_dbfs": float("-inf"),
+                "clipping_percent": 0.0,
+            }
+
+        max_abs = max(abs(sample) for sample in samples)
+        rms = math.sqrt(sum(sample * sample for sample in samples) / sample_count)
+        clipping_count = sum(
+            1 for sample in samples if abs(sample) >= ww.Constants.CLIPPING_SAMPLE_THRESHOLD
+        )
+
+        return {
+            "sample_count": sample_count,
+            "rms_dbfs": self._amplitude_to_dbfs(rms),
+            "peak_dbfs": self._amplitude_to_dbfs(max_abs),
+            "clipping_percent": clipping_count / sample_count * 100,
+        }
+
+    def _log_signal_metrics(self, metrics: dict[str, float | int]) -> None:
+        """Log microphone signal metrics and practical warnings."""
+        rms_dbfs = float(metrics["rms_dbfs"])
+        peak_dbfs = float(metrics["peak_dbfs"])
+        clipping_percent = float(metrics["clipping_percent"])
+
+        _logger.info(
+            f"Mic check: rms={rms_dbfs:.1f} dBFS, "
+            f"peak={peak_dbfs:.1f} dBFS, clipping={clipping_percent:.2f}%"
+        )
+
+        if rms_dbfs <= ww.Constants.DEAD_MIC_DBFS_THRESHOLD:
+            _logger.warning("Mic check warning: input appears silent or muted")
+        elif rms_dbfs <= ww.Constants.QUIET_MIC_DBFS_THRESHOLD:
+            _logger.warning("Mic check warning: input level is very quiet")
+        elif rms_dbfs >= ww.Constants.NOISY_MIC_DBFS_THRESHOLD:
+            _logger.warning("Mic check warning: ambient input level is high")
+
+        if clipping_percent >= ww.Constants.CLIPPING_RATE_WARNING_THRESHOLD:
+            _logger.warning("Mic check warning: input appears to be clipping")
+
+    @staticmethod
+    def _amplitude_to_dbfs(amplitude: float) -> float:
+        """Convert a 16-bit PCM amplitude to dBFS."""
+        if amplitude <= 0:
+            return float("-inf")
+        return 20 * math.log10(amplitude / 32768.0)
 
     def get_audio_devices(self, audio: pyaudio.PyAudio) -> list[dict[str, typing.Any]]:
         """Get list of available audio input devices.

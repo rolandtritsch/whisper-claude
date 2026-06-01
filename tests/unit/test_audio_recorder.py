@@ -13,6 +13,7 @@ import pytest
 import tests.unit.conftest as conftest
 import whisper_wayland as ww
 import whisper_wayland.audio_recorder as audio_recorder
+from whisper_wayland.audio_recorder.audio_system_validator import AudioSystemValidator
 from whisper_wayland.audio_recorder.native_stderr import should_suppress_audio_warnings
 
 
@@ -29,6 +30,45 @@ class TestAudioRecorder:
         """Test disabling native audio warning suppression."""
         with unittest.mock.patch.dict(os.environ, {"SUPPRESS_AUDIO_WARNINGS": value}):
             assert not should_suppress_audio_warnings()
+
+    def test_signal_metrics_detect_audio_level(self) -> None:
+        """Test microphone signal metric calculation."""
+        sample_count = 100
+        min_expected_dbfs = -31.0
+        max_expected_dbfs = -29.0
+        validator = AudioSystemValidator.new()
+        sample = (1000).to_bytes(2, byteorder="little", signed=True)
+        metrics = validator._calculate_signal_metrics(sample * sample_count)
+
+        assert metrics["sample_count"] == sample_count
+        assert min_expected_dbfs < metrics["rms_dbfs"] < max_expected_dbfs
+        assert min_expected_dbfs < metrics["peak_dbfs"] < max_expected_dbfs
+        assert metrics["clipping_percent"] == 0.0
+
+    @unittest.mock.patch("whisper_wayland.audio_recorder.audio_system_validator.pyaudio.PyAudio")
+    def test_microphone_startup_check_runs_when_enabled(
+        self, mock_pyaudio: unittest.mock.Mock
+    ) -> None:
+        """Test startup microphone check opens and samples the selected input."""
+        with unittest.mock.patch.dict(
+            os.environ,
+            {
+                "OPENAI_API_KEY": "sk-test123",
+                "MIC_STARTUP_CHECK": "true",
+                "MIC_CHECK_DURATION": "0.01",
+            },
+        ):
+            test_config = ww.Config()
+            mock_audio_instance = conftest.create_mock_audio_instance()
+            mock_stream = conftest.create_mock_stream()
+            mock_audio_instance.open.return_value = mock_stream
+            mock_pyaudio.return_value = mock_audio_instance
+
+            audio_recorder.AudioRecorder(test_config)
+
+            mock_audio_instance.open.assert_called()
+            mock_stream.read.assert_called()
+            mock_stream.close.assert_called()
 
     @unittest.mock.patch("whisper_wayland.audio_recorder.audio_system_validator.pyaudio.PyAudio")
     def test_audio_recorder_initialization(
@@ -296,6 +336,31 @@ class TestAudioRecorder:
         recorder = audio_recorder.AudioRecorder(test_config)
 
         assert recorder._recording_engine._input_device_index == 1
+
+    @unittest.mock.patch("whisper_wayland.audio_recorder.audio_system_validator.pyaudio.PyAudio")
+    def test_preferred_device_skips_unavailable_usb(
+        self, mock_pyaudio: unittest.mock.Mock, test_config: "ww.Config"
+    ) -> None:
+        """Test that unavailable USB devices are skipped during preferred selection."""
+        mock_audio_instance = unittest.mock.Mock()
+        mock_audio_instance.get_device_count.return_value = 2
+        mock_audio_instance.get_device_info_by_index.side_effect = [
+            # validation scan
+            {"name": "Apple T2 Audio: Digital Mic", "maxInputChannels": 3},
+            {"name": "USB Audio Device", "maxInputChannels": 1},
+            # find_preferred_input_device scan
+            {"name": "Apple T2 Audio: Digital Mic", "maxInputChannels": 3},
+            {"name": "USB Audio Device", "maxInputChannels": 1},
+            # USB open check sample-rate lookup
+            {"name": "USB Audio Device", "maxInputChannels": 1, "defaultSampleRate": 44100},
+        ]
+        mock_audio_instance.is_format_supported.return_value = True
+        mock_audio_instance.open.side_effect = OSError("Device unavailable")
+        mock_pyaudio.return_value = mock_audio_instance
+
+        recorder = audio_recorder.AudioRecorder(test_config)
+
+        assert recorder._recording_engine._input_device_index is None
 
     @unittest.mock.patch("whisper_wayland.audio_recorder.audio_system_validator.pyaudio.PyAudio")
     def test_preferred_device_selects_bluetooth(

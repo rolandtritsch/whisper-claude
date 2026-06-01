@@ -17,23 +17,19 @@ class TestConfig:
 
     def test_config_initialization_with_defaults(self) -> None:
         """Test config initialization with default values."""
-        # Temporarily remove LOG_LEVEL to test default
-        old_log_level = os.environ.pop("LOG_LEVEL", None)
-        try:
-            with unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test123"}):
-                test_config = ww.Config()
+        with tempfile.NamedTemporaryFile(mode="w") as empty_env:
+            with unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test123"}, clear=True):
+                test_config = ww.Config(empty_env.name)
 
                 assert test_config.openai_api_key == "sk-test123"
                 assert test_config.whisper_model == "base"
                 assert test_config.audio_sample_rate == ww.Constants.DEFAULT_SAMPLE_RATE
                 assert test_config.audio_chunk_size == ww.Constants.DEFAULT_CHUNK_SIZE
                 assert test_config.max_recording_duration == ww.Constants.DEFAULT_RECORDING_DURATION
+                assert not test_config.mic_startup_check
+                assert test_config.mic_check_duration == ww.Constants.DEFAULT_MIC_CHECK_DURATION
                 assert test_config.log_level == "INFO"
                 assert test_config.hotkey == "ctrl+compose"
-        finally:
-            # Restore LOG_LEVEL if it existed
-            if old_log_level:
-                os.environ["LOG_LEVEL"] = old_log_level
 
     def test_config_missing_required_api_key(self) -> None:
         """Test config fails when required API key is missing."""
@@ -56,9 +52,12 @@ class TestConfig:
             "AUDIO_SAMPLE_RATE": "44100",
             "AUDIO_CHUNK_SIZE": "2048",
             "MAX_RECORDING_DURATION": "60",
+            "MIC_STARTUP_CHECK": "true",
+            "MIC_CHECK_DURATION": "0.5",
             "LOG_LEVEL": "DEBUG",
             "HOTKEY": "alt+space",
         }
+        expected_mic_check_duration = 0.5
 
         with unittest.mock.patch.dict(os.environ, env_vars):
             test_config = ww.Config()
@@ -68,6 +67,8 @@ class TestConfig:
             assert test_config.audio_sample_rate == ww.Constants.HIGH_QUALITY_SAMPLE_RATE
             assert test_config.audio_chunk_size == ww.Constants.LARGE_CHUNK_SIZE
             assert test_config.max_recording_duration == ww.Constants.LONG_RECORDING_DURATION
+            assert test_config.mic_startup_check
+            assert test_config.mic_check_duration == expected_mic_check_duration
             assert test_config.log_level == "DEBUG"
             assert test_config.hotkey == "alt+space"
 
@@ -92,6 +93,11 @@ class TestConfig:
             # Invalid recording duration
             with unittest.mock.patch.dict(os.environ, {"MAX_RECORDING_DURATION": "zero"}):
                 with pytest.raises(ww.ConfigError, match="MAX_RECORDING_DURATION"):
+                    ww.Config()
+
+            # Invalid microphone check duration
+            with unittest.mock.patch.dict(os.environ, {"MIC_CHECK_DURATION": "invalid"}):
+                with pytest.raises(ww.ConfigError, match="MIC_CHECK_DURATION"):
                     ww.Config()
 
     def test_config_invalid_log_level(self) -> None:

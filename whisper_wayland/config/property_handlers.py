@@ -105,6 +105,31 @@ class PropertyHandlers:
             _logger.error(f"Invalid MAX_RECORDING_DURATION: {e}")
             raise PropertyHandlerError(f"Invalid MAX_RECORDING_DURATION: {e}") from e
 
+    def get_mic_startup_check(self) -> bool:
+        """Get whether to run microphone signal checks during startup."""
+        value = os.getenv("MIC_STARTUP_CHECK", "false").strip().lower()
+        return value in {"1", "true", "yes", "on"}
+
+    def get_mic_check_duration(self) -> float:
+        """Get microphone startup check duration in seconds.
+
+        Returns:
+            Microphone check duration
+
+        Raises:
+            PropertyHandlerError: If duration is invalid
+        """
+        try:
+            duration = float(
+                os.getenv("MIC_CHECK_DURATION", str(ww.Constants.DEFAULT_MIC_CHECK_DURATION))
+            )
+            if duration <= 0:
+                raise ValueError("Microphone check duration must be positive")
+            return duration
+        except ValueError as e:
+            _logger.error(f"Invalid MIC_CHECK_DURATION: {e}")
+            raise PropertyHandlerError(f"Invalid MIC_CHECK_DURATION: {e}") from e
+
     # Logging Configuration
     def get_log_level(self) -> str:
         """Get logging level.

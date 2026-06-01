@@ -58,6 +58,8 @@ class ConfigValidator:
             "audio_sample_rate": config_instance.audio_sample_rate,
             "audio_chunk_size": config_instance.audio_chunk_size,
             "max_recording_duration": config_instance.max_recording_duration,
+            "mic_startup_check": config_instance.mic_startup_check,
+            "mic_check_duration": config_instance.mic_check_duration,
             "log_level": config_instance.log_level,
             "hotkey": config_instance.hotkey,
             "text_insertion_delay": config_instance.text_insertion_delay,
