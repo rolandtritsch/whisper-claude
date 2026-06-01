@@ -57,6 +57,7 @@ class AudioRecorder:
 
             _logger.info("Audio recorder initialized successfully")
             _logger.info(f"Whisper recordings will use {input_device_description}")
+            self._audio_validator.log_default_input_device(self._audio)
             _logger.debug(
                 f"Audio config: sample_rate={config.audio_sample_rate}, "
                 f"chunk_size={config.audio_chunk_size}, "

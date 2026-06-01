@@ -5,6 +5,7 @@ Audio system validation and device discovery functionality.
 
 import logging
 import math
+import subprocess
 import sys
 import typing
 from array import array
@@ -168,6 +169,39 @@ class AudioSystemValidator:
             )
         except Exception as e:
             return f"input_device_index={input_device_index} (details unavailable: {e})"
+
+    def log_default_input_device(self, audio: pyaudio.PyAudio) -> None:
+        """Log debug details about the effective system default input device."""
+        if not _logger.isEnabledFor(logging.DEBUG):
+            return
+
+        try:
+            with suppress_native_stderr():
+                info = audio.get_default_input_device_info()
+            _logger.debug(
+                "PyAudio default input device: "
+                f"'{info['name']}' (index {info['index']}, "
+                f"sample_rate={int(info['defaultSampleRate'])} Hz, "
+                f"channels={info['maxInputChannels']})"
+            )
+        except Exception as e:
+            _logger.debug(f"Could not read PyAudio default input device: {e}")
+
+        default_source = self._get_pulse_default_source()
+        if default_source is None:
+            _logger.debug("PulseAudio/PipeWire default source: unavailable")
+            return
+
+        source_details = self._get_pulse_source_details(default_source)
+        if source_details is None:
+            _logger.debug(f"PulseAudio/PipeWire default source: {default_source}")
+            return
+
+        description = source_details.get("description", "unknown description")
+        state = source_details.get("state", "unknown state")
+        _logger.debug(
+            f"PulseAudio/PipeWire default source: {default_source} ({description}, state={state})"
+        )
 
     def _can_open_input_device(
         self, audio: pyaudio.PyAudio, config: "ww.Config", input_device_index: int
@@ -344,6 +378,53 @@ class AudioSystemValidator:
             _logger.error(f"Failed to get audio devices: {e}")
 
         return devices
+
+    def _get_pulse_default_source(self) -> typing.Optional[str]:
+        """Return the desktop audio default source name when pactl is available."""
+        result = self._run_audio_command(["pactl", "get-default-source"])
+        if result is None:
+            return None
+
+        source = result.stdout.strip()
+        return source or None
+
+    def _get_pulse_source_details(self, source_name: str) -> typing.Optional[dict[str, str]]:
+        """Return parsed pactl source details for a source name."""
+        result = self._run_audio_command(["pactl", "list", "sources"])
+        if result is None:
+            return None
+
+        for block in result.stdout.split("\nSource #"):
+            details: dict[str, str] = {}
+            for line in block.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("Name:"):
+                    details["name"] = stripped.removeprefix("Name:").strip()
+                elif stripped.startswith("Description:"):
+                    details["description"] = stripped.removeprefix("Description:").strip()
+                elif stripped.startswith("State:"):
+                    details["state"] = stripped.removeprefix("State:").strip()
+
+            if details.get("name") == source_name:
+                return details
+
+        return None
+
+    def _run_audio_command(
+        self, command: list[str]
+    ) -> typing.Optional[subprocess.CompletedProcess[str]]:
+        """Run a desktop audio command for debug diagnostics."""
+        try:
+            return subprocess.run(
+                command,
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=2,
+            )
+        except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+            _logger.debug(f"Could not run {' '.join(command)}: {e}")
+            return None
 
     @staticmethod
     def new() -> "AudioSystemValidator":

@@ -62,6 +62,51 @@ class TestAudioRecorder:
             "system default input device 'default' (index 15, sample_rate=44100 Hz, channels=64)"
         )
 
+    def test_logs_default_input_device_details(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Test debug logging for PyAudio and desktop audio default inputs."""
+        validator = AudioSystemValidator.new()
+        mock_audio_instance = unittest.mock.Mock()
+        mock_audio_instance.get_default_input_device_info.return_value = {
+            "index": 15,
+            "name": "default",
+            "defaultSampleRate": 44100.0,
+            "maxInputChannels": 64,
+        }
+        source_name = "alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback"
+        default_source = unittest.mock.Mock(stdout=f"{source_name}\n")
+        source_list = unittest.mock.Mock(
+            stdout=(
+                "Source #54\n"
+                "\tState: SUSPENDED\n"
+                f"\tName: {source_name}\n"
+                "\tDescription: USB Audio Device Mono\n"
+            )
+        )
+
+        with caplog.at_level("DEBUG"):
+            with unittest.mock.patch(
+                "whisper_wayland.audio_recorder.audio_system_validator.subprocess.run",
+                side_effect=[default_source, source_list],
+            ):
+                validator.log_default_input_device(mock_audio_instance)
+
+        assert "PyAudio default input device: 'default' (index 15" in caplog.text
+        assert "PulseAudio/PipeWire default source:" in caplog.text
+        assert "USB Audio Device Mono" in caplog.text
+
+    def test_default_input_device_details_skip_commands_without_debug(self) -> None:
+        """Test desktop audio commands are not run unless debug logging is enabled."""
+        validator = AudioSystemValidator.new()
+        mock_audio_instance = unittest.mock.Mock()
+
+        with unittest.mock.patch(
+            "whisper_wayland.audio_recorder.audio_system_validator.subprocess.run"
+        ) as mock_run:
+            validator.log_default_input_device(mock_audio_instance)
+
+        mock_audio_instance.get_default_input_device_info.assert_not_called()
+        mock_run.assert_not_called()
+
     @unittest.mock.patch("whisper_wayland.audio_recorder.audio_system_validator.pyaudio.PyAudio")
     def test_microphone_startup_check_runs_when_enabled(
         self, mock_pyaudio: unittest.mock.Mock
