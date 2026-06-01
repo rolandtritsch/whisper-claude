@@ -13,10 +13,22 @@ import pytest
 import tests.unit.conftest as conftest
 import whisper_wayland as ww
 import whisper_wayland.audio_recorder as audio_recorder
+from whisper_wayland.audio_recorder.native_stderr import should_suppress_audio_warnings
 
 
 class TestAudioRecorder:
     """Test cases for AudioRecorder class."""
+
+    def test_audio_warnings_suppressed_by_default(self) -> None:
+        """Test that native audio warnings are suppressed by default."""
+        with unittest.mock.patch.dict(os.environ, {}, clear=True):
+            assert should_suppress_audio_warnings()
+
+    @pytest.mark.parametrize("value", ["0", "false", "no", "off"])
+    def test_audio_warnings_can_be_unsuppressed(self, value: str) -> None:
+        """Test disabling native audio warning suppression."""
+        with unittest.mock.patch.dict(os.environ, {"SUPPRESS_AUDIO_WARNINGS": value}):
+            assert not should_suppress_audio_warnings()
 
     @unittest.mock.patch("whisper_wayland.audio_recorder.audio_system_validator.pyaudio.PyAudio")
     def test_audio_recorder_initialization(

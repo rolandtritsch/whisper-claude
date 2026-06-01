@@ -9,6 +9,7 @@ import typing
 import pyaudio
 
 import whisper_wayland as ww
+from whisper_wayland.audio_recorder.native_stderr import suppress_native_stderr
 
 _logger = logging.getLogger(__name__)
 
@@ -36,7 +37,8 @@ class AudioSystemValidator:
             AudioSystemValidationError: If PyAudio initialization fails
         """
         try:
-            audio = pyaudio.PyAudio()
+            with suppress_native_stderr():
+                audio = pyaudio.PyAudio()
             _logger.debug("PyAudio initialized successfully")
             return audio
         except Exception as e:
@@ -55,11 +57,13 @@ class AudioSystemValidator:
         """
         try:
             # Check for available input devices
-            device_count = audio.get_device_count()
+            with suppress_native_stderr():
+                device_count = audio.get_device_count()
             input_devices = []
 
             for i in range(device_count):
-                device_info = audio.get_device_info_by_index(i)
+                with suppress_native_stderr():
+                    device_info = audio.get_device_info_by_index(i)
                 if device_info["maxInputChannels"] > 0:
                     input_devices.append(device_info)
 
@@ -70,13 +74,14 @@ class AudioSystemValidator:
 
             # Test audio format support with default input device
             try:
-                default_device = audio.get_default_input_device_info()
-                audio.is_format_supported(
-                    rate=config.audio_sample_rate,
-                    input_device=default_device["index"],
-                    input_channels=1,
-                    input_format=pyaudio.paInt16,
-                )
+                with suppress_native_stderr():
+                    default_device = audio.get_default_input_device_info()
+                    audio.is_format_supported(
+                        rate=config.audio_sample_rate,
+                        input_device=default_device["index"],
+                        input_channels=1,
+                        input_format=pyaudio.paInt16,
+                    )
                 _logger.debug(
                     f"Audio format validated successfully for device: {default_device['name']}"
                 )
@@ -107,8 +112,11 @@ class AudioSystemValidator:
         bt_candidates: list[tuple[int, str]] = []
 
         try:
-            for i in range(audio.get_device_count()):
-                info = audio.get_device_info_by_index(i)
+            with suppress_native_stderr():
+                device_count = audio.get_device_count()
+            for i in range(device_count):
+                with suppress_native_stderr():
+                    info = audio.get_device_info_by_index(i)
                 if info["maxInputChannels"] <= 0:
                     continue
                 name = str(info["name"]).lower()
@@ -144,9 +152,11 @@ class AudioSystemValidator:
         devices: list[dict[str, typing.Any]] = []
 
         try:
-            device_count = audio.get_device_count()
+            with suppress_native_stderr():
+                device_count = audio.get_device_count()
             for i in range(device_count):
-                device_info = audio.get_device_info_by_index(i)
+                with suppress_native_stderr():
+                    device_info = audio.get_device_info_by_index(i)
                 if device_info["maxInputChannels"] > 0:
                     devices.append(
                         {

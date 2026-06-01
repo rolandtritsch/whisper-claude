@@ -11,6 +11,7 @@ import typing
 import pyaudio
 
 import whisper_wayland as ww
+from whisper_wayland.audio_recorder.native_stderr import suppress_native_stderr
 
 _logger = logging.getLogger(__name__)
 
@@ -118,14 +119,15 @@ class RecordingEngine:
         max_duration = self._config.max_recording_duration
 
         try:
-            self._stream = self._audio.open(
-                format=pyaudio.paInt16,
-                channels=1,
-                rate=self._effective_sample_rate,
-                input=True,
-                frames_per_buffer=self._config.audio_chunk_size,
-                input_device_index=self._input_device_index,
-            )
+            with suppress_native_stderr():
+                self._stream = self._audio.open(
+                    format=pyaudio.paInt16,
+                    channels=1,
+                    rate=self._effective_sample_rate,
+                    input=True,
+                    frames_per_buffer=self._config.audio_chunk_size,
+                    input_device_index=self._input_device_index,
+                )
 
             _logger.debug(f"Audio stream opened, recording for up to {max_duration}s")
 
@@ -195,7 +197,8 @@ class RecordingEngine:
         """
         if input_device_index is not None:
             try:
-                info = audio.get_device_info_by_index(input_device_index)
+                with suppress_native_stderr():
+                    info = audio.get_device_info_by_index(input_device_index)
                 native_rate = int(info["defaultSampleRate"])
                 _logger.debug(f"Using device native sample rate: {native_rate} Hz")
                 return native_rate
